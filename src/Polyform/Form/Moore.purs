@@ -31,4 +31,4 @@ step i m = do
   let
     zapMoore (Moore w fm) = zap const w (fm i)
     m' = duplicate m
-  zapMoore <$> m'
+  zapMoore m'
