@@ -13,11 +13,9 @@ to generate this file without the comments in this block.
 { name = "my-project"
 , dependencies =
   [ "console"
+  , "control"
   , "effect"
-  , "open-pairing"
-  , "polyform"
-  , "polyform-batteries-core"
-  , "polyform-batteries-urlencoded"
+  , "identity"
   , "prelude"
   , "psci-support"
   , "transformers"

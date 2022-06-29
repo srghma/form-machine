@@ -14,10 +14,10 @@ import Polyform.Form.Moore (Moore(..), step)
 type UIComponentM :: forall k. (k -> Type) -> Type -> Type -> k -> Type -> Type
 type UIComponentM eff ps st act = ReaderT ps (StateT st (Writer (Array (eff act))))
 
-type UIComponentC :: forall k. (k -> Type) -> Type -> Type -> k -> Type -> Type
-type UIComponentC eff ps st act = EnvT ps (StoreT st (Traced (Array (eff act))))
+type UIComponentW :: forall k. (k -> Type) -> Type -> Type -> k -> Type -> Type
+type UIComponentW eff ps st act = EnvT ps (StoreT st (Traced (Array (eff act))))
 
-type UIComponent eff ps st act = Moore (UIComponentC eff ps st act) (UIComponentM eff ps st act) act (st /\ (Array (eff act)))
+type UIComponent eff ps st act = Moore (UIComponentW eff ps st act) (UIComponentM eff ps st act) act (st /\ (Array (eff act)))
 
 stepUIComponent :: forall act eff ps st. act -> UIComponent eff ps st act -> UIComponent eff ps st act
 stepUIComponent = step
