@@ -12,11 +12,9 @@ data Moore w m i a = Moore (w a) (i -> m Unit)
 derive instance (Functor w, Functor m) => Functor (Moore w m i)
 
 instance (Extend w, Functor m) => Extend (Moore w m i) where
-  extend g m = g' m
-    where
-    g' (Moore w f) = do
-      let wb = w =>> \w' -> g (Moore w' f)
-      Moore wb f
+  extend g (Moore w f) = do
+    let wb = w =>> \w' -> g (Moore w' f)
+    Moore wb f
 
 instance (Functor m, Comonad w) => Comonad (Moore w m i) where
   extract (Moore wa _) = extract wa
