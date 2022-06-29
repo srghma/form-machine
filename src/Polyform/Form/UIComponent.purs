@@ -1,71 +1,28 @@
-module UIComponent where
+module Polyform.Form.UIComponent where
 
 import Prelude
 
-import Control.Comonad (class Comonad, extract, (=>>))
-import Control.Comonad.Store (Store, store)
-import Control.Comonad.Store.Class (seek)
-import Control.Extend (class Extend)
-import Data.Tuple (fst, snd)
-import Data.Tuple.Nested (type (/\), (/\))
+import Data.Tuple.Nested ((/\), type (/\))
+import Control.Monad.State.Trans (StateT)
+import Control.Monad.Writer (Writer)
+import Control.Monad.Reader.Trans (ReaderT)
+import Control.Comonad.Store.Trans (StoreT(..))
+import Control.Comonad.Traced (Traced, traced)
+import Control.Comonad.Env.Trans (EnvT(..))
+import Polyform.Form.Moore (Moore(..), step)
 
-data Moore m i a = Moore a (i -> m (Moore m i a))
+type UIComponentM :: forall k. (k -> Type) -> Type -> Type -> k -> Type -> Type
+type UIComponentM eff ps st act = ReaderT ps (StateT st (Writer (Array (eff act))))
 
-derive instance Functor m => Functor (Moore m i)
+type UIComponentC :: forall k. (k -> Type) -> Type -> Type -> k -> Type -> Type
+type UIComponentC eff ps st act = EnvT ps (StoreT st (Traced (Array (eff act))))
 
-instance Functor m => Extend (Moore m i) where
-  extend g m = g' m
-    where
-    g' m'@(Moore _ f) = do
-      let b = g m'
-      Moore b (map g' <$> f)
+type UIComponent eff ps st act = Moore (UIComponentC eff ps st act) (UIComponentM eff ps st act) act (st /\ (Array (eff act)))
 
-instance Functor m => Comonad (Moore m i) where
-  extract (Moore a _) = a
+stepUIComponent :: forall act eff ps st. act -> UIComponent eff ps st act -> UIComponent eff ps st act
+stepUIComponent = step
 
-step :: forall a i m. Moore m i a -> i -> m (Moore m i a)
-step (Moore _ f) = f
-
-unfoldMoore :: forall a i m s. Monad m => (s -> (a /\ (i -> m s))) -> s -> Moore m i a
-unfoldMoore f = go
+unfoldUIComponent :: forall act eff ps st. ps -> st -> (act -> UIComponentM eff ps st act Unit) -> UIComponent eff ps st act
+unfoldUIComponent ps st f = Moore w f
   where
-  go s = case f s of
-    (a /\ g) -> Moore a \i -> do
-      s' <- g i
-      pure $ go s'
-
-data MooreCT :: forall k. (Type -> Type) -> Type -> (k -> Type) -> k -> Type
-data MooreCT m i w a = MooreCT (w a) (i -> m (MooreCT m i w a))
-
-derive instance (Functor w, Functor m) => Functor (MooreCT m i w)
-
-instance (Extend w, Functor m) => Extend (MooreCT m i w) where
-  extend g m = g' m
-    where
-    g' (MooreCT w f) = do
-      let wb = w =>> \w' -> g (MooreCT w' f)
-      MooreCT wb (map g' <$> f)
-
-instance (Functor m, Comonad w) => Comonad (MooreCT m i w) where
-  extract (MooreCT wa _) = extract wa
-
-hoist :: forall a i m m' w. Functor m' => (m ~> m') -> MooreCT m i w a -> MooreCT m' i w a
-hoist f (MooreCT wa cnt) = MooreCT wa (map hoist' cnt)
-  where
-  hoist' mm = hoist f <$> f mm
-
-newtype UIComponent m state action ui = UIComponent (MooreCT m action (Store state) ui)
-
-derive newtype instance Functor m => Functor (UIComponent m state action)
-derive newtype instance Functor m => Extend (UIComponent m state action)
-
--- | Let's do manual pairing as a first step so we have a working form...
--- | then we can generalize.
-unfoldUIComponent :: forall action m state ui. Monad m => (state -> (ui /\ (action -> m state))) -> state -> UIComponent m state action ui
-unfoldUIComponent f state = UIComponent (MooreCT wa f')
-  where
-  wa = store (map fst f) state
-  f' = map (\state' -> MooreCT (seek state' wa) f') <$> snd (f state)
-
-hoistUIComponent :: forall action m m' state ui. Functor m' => (m ~> m') -> UIComponent m state action ui -> UIComponent m' state action ui
-hoistUIComponent f (UIComponent m) = UIComponent (hoist f m)
+  w = EnvT $ ps /\ StoreT (traced (flip (/\)) /\ st)

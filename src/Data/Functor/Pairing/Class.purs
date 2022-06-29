@@ -1,15 +1,19 @@
 module Data.Functor.Pairing.Class where
 
-import Data.Tuple.Nested ((/\), type (/\))
-import Control.Monad.State.Trans (StateT(..))
-import Control.Monad.Writer.Trans (WriterT(..))
-import Control.Monad.Reader.Trans (ReaderT(..))
+import Control.Comonad.Env.Trans (EnvT(..))
 import Control.Comonad.Store.Trans (StoreT(..))
 import Control.Comonad.Traced.Trans (TracedT(..))
-import Control.Comonad.Env.Trans (EnvT(..))
+import Control.Monad.Reader.Trans (ReaderT(..))
+import Control.Monad.State.Trans (StateT(..))
+import Control.Monad.Writer.Trans (WriterT(..))
+import Data.Identity (Identity(..))
+import Data.Tuple.Nested ((/\), type (/\))
 
 class Pairing f g where
   zap :: forall a b c. (a -> b -> c) -> f a -> g b -> c
+
+instance Pairing Identity Identity where
+  zap f (Identity a) (Identity b) = f a b
 
 instance Pairing ((->) r) ((/\) r) where
   zap f gf (r /\ b) = f (gf r) b
