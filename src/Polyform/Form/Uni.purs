@@ -1,5 +1,5 @@
 -- TODO move this to its own library
-module Forms.Uni where
+module Polyform.Form.Uni where
 
 --   ( Action(..)
 --   , AsyncForm
@@ -25,28 +25,37 @@ module Forms.Uni where
 
 import Prelude
 
+import Polyform.Form.FormMachine.FormM (FormM(..))
+import Polyform.Form.FormMachine.FormM as FormM
 import Control.Alt (class Alt, (<|>))
 import Control.Plus (class Plus, empty)
 import Data.Array (head) as Array
 import Data.FormURLEncoded.Query (FieldId(..), Query)
 import Data.FormURLEncoded.Query (FieldId, alter, lookup, singleton) as Query
+import Data.Generic.Rep (class Generic)
+import Data.Lens (Lens')
+import Data.Lens.Iso.Newtype (_Newtype)
+import Data.Lens.Record (prop)
 import Data.List (List)
+import Data.Map as OMap
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Profunctor (class Profunctor, dimap)
 import Data.Profunctor.Choice (class Choice, left, right)
 import Data.Profunctor.Strong (class Strong, first, second)
 import Data.Show.Generic (genericShow)
+import Data.Symbol (class IsSymbol, reflectSymbol)
 import Polyform (Validator)
 import Polyform.Batteries.UrlEncoded (Errors) as UrlEncoded
 import Polyform.Batteries.UrlEncoded.Types.Errors (ErrorId(..))
 import Polyform.Batteries.UrlEncoded.Types.Errors (lookup, singleton) as Errors
+import Polyform.Form.FormSpecs.StatelessFormSpec (RenderFn)
 import Polyform.Validator (hoist) as Validator
 import Polyform.Validator (liftFn, lmapValidator)
 import Prim.Row (class Cons) as Row
 import Record (get) as Record
 import Safe.Coerce (coerce) as Safe
-import Type.Prelude (class IsSymbol, Proxy(..), reflectSymbol)
+import Type.Prelude (Proxy(..))
 
 type State state err =
   { query :: Query

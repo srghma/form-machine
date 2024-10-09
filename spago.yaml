@@ -1,0 +1,42 @@
+package:
+  dependencies:
+    - console
+    - control
+    - effect
+    - identity
+    - prelude
+    - transformers
+    - tuples
+    - arrays
+    - record
+    - polyform
+    - polyform-batteries-core
+    - polyform-batteries-urlencoded
+    - polyform-batteries-json
+    - polyform-batteries-env
+    - profunctor-lenses
+    - freeap
+    - ordered-collections
+  name: form-machine
+workspace:
+  extraPackages:
+    js-unsafe-stringify:
+      git: https://github.com/srghma/purescript-js-unsafe-stringify.git
+      ref: master
+    polyform:
+      git: https://github.com/srghma/polyform.git
+      ref: master
+    polyform-batteries-core:
+      git: https://github.com/srghma/batteries-core.git
+      ref: master
+    polyform-batteries-urlencoded:
+      git: https://github.com/srghma/batteries-urlencoded.git
+      ref: master
+    polyform-batteries-json:
+      git: https://github.com/srghma/batteries-json.git
+      ref: master
+    polyform-batteries-env:
+      git: https://github.com/srghma/batteries-env.git
+      ref: master
+  packageSet:
+    registry: 60.4.0
